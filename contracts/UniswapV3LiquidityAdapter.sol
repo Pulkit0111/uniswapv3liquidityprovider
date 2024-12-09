@@ -57,20 +57,24 @@ contract UniswapV3LiquidityAdapter is RouterIntentEoaAdapterWithoutDataProvider 
     function _transferTokensToContract(IUniswapV3Mint.MintParams memory params)
         internal
     {
-        if (params.token0 != native()) {
+        if (params.token0 != address(0)) {
+            // ERC-20 token transfer
             IERC20(params.token0).safeTransferFrom(msg.sender, self(), params.amount0Desired);
         } else {
+            // Native token (ETH) transfer
             require(msg.value == params.amount0Desired, Errors.INSUFFICIENT_NATIVE_FUNDS_PASSED);
         }
 
-        if (params.token1 != native()) {
+        if (params.token1 != address(0)) {
+            // ERC-20 token transfer
             IERC20(params.token1).safeTransferFrom(msg.sender, self(), params.amount1Desired);
         } else {
+            // Native token (ETH) transfer
             require(msg.value == params.amount1Desired, Errors.INSUFFICIENT_NATIVE_FUNDS_PASSED);
         }
     }
 
-    function _adjustAmounts(IUniswapV3Mint.MintParams memory params) internal view{
+    function _adjustAmounts(IUniswapV3Mint.MintParams memory params) internal view {
         if (params.amount0Desired == type(uint256).max) {
             params.amount0Desired = address(this).balance;
         }
@@ -81,14 +85,16 @@ contract UniswapV3LiquidityAdapter is RouterIntentEoaAdapterWithoutDataProvider 
     }
 
     function _approveTokens(IUniswapV3Mint.MintParams memory params) internal {
-        if (params.token0 != native()) {
+        if (params.token0 != address(0)) {
+            // ERC-20 approval for token0
             IERC20(params.token0).safeIncreaseAllowance(
                 nonFungiblePositionManager,
                 params.amount0Desired
             );
         }
 
-        if (params.token1 != native()) {
+        if (params.token1 != address(0)) {
+            // ERC-20 approval for token1
             IERC20(params.token1).safeIncreaseAllowance(
                 nonFungiblePositionManager,
                 params.amount1Desired
